@@ -1,5 +1,6 @@
 import numpy as np
 
+# This class holds klaman filter that can handle with delay. The filter saves "buffer_size" (external input) of matrices and state vectors, and use them to iterative update the estimations 
 class KalmanFilterWithDelay:
     def __init__(self, robot_id, dt, wheelbase, process_noise_std, initial_state_cov, measurements_base_noise, self_meas_std, space_limit, k1, k2, buffer_size):
         self.robot_id = robot_id
@@ -56,21 +57,21 @@ class KalmanFilterWithDelay:
             [np.tan(delta) * self.dt / self.wheelbase, 0]
         ])
         
-        if state_index == 0:
+        if state_index == 0: # predict new state and should add it to the buffer
             self.state_buffer.append(A @ past_state + B @ curr_control)
             self.P_buffer.append(A @ past_P @ A.T + self.Q)
             self.control_buffer.append(curr_control)
             self.number_of_meas.append(0)
-        else:
+        else: # fix previous prediction
             self.state_buffer[state_index] = A @ past_state + B @ curr_control
             self.P_buffer[state_index] = A @ past_P @ A.T + self.Q #/ (1+past_num_of_meas)
         
 
-            
+    # The following function wrapps the kalman prediction and filtering processes, and manage the input of delayed messages into the filter.      
     def kalman_wrapper(self, measurements, current_time, control):
         measurements_delay = self.measurements_delay
         
-        for measuring_robot, transmit_time, relative_arrival_cycles, transmit_pos, measurement in measurements:
+        for measuring_robot, transmit_time, relative_arrival_cycles, transmit_pos, measurement in measurements: # takes the data of a single measurement message, as defined in RobotSimulationKalman.py
             delay = current_time - transmit_time
             assert(delay < self.buffer_size)
             measurements_delay[delay].append((measuring_robot, transmit_time, relative_arrival_cycles, transmit_pos, measurement))

@@ -48,6 +48,7 @@ class PlotStatistics:
                 self.plot_mae_drift_comparison()
 
     def simulation(self):
+        # According to external simulation defs, makes multiple simulation and extracts statistics for plotting
         for delayed_kalman in self.simulation_defs.delayed_kalman:
             for delay_window in self.simulation_defs.delay_windows:
                 for no_erasure in self.simulation_defs.no_erasures_communication:
